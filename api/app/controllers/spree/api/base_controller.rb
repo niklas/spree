@@ -17,21 +17,12 @@ module Spree
       before_action :authenticate_user
       before_action :load_user_roles
 
-      after_filter  :set_jsonp_format
-
       rescue_from Exception, with: :error_during_processing
       rescue_from ActiveRecord::RecordNotFound, with: :not_found
       rescue_from CanCan::AccessDenied, with: :unauthorized
       rescue_from Spree::Core::GatewayError, with: :gateway_error
 
       helper Spree::Api::ApiHelpers
-
-      def set_jsonp_format
-        if params[:callback] && request.get?
-          self.response_body = "#{params[:callback]}(#{response.body})"
-          headers["Content-Type"] = 'application/javascript'
-        end
-      end
 
       def map_nested_attributes_keys(klass, attributes)
         nested_keys = klass.nested_attributes_options.keys
@@ -64,7 +55,7 @@ module Spree
       end
 
       def load_user
-        @current_api_user = (try_spree_current_user || Spree.user_class.find_by(spree_api_key: api_key.to_s))
+        @current_api_user = Spree.user_class.find_by(spree_api_key: api_key.to_s)
       end
 
       def authenticate_user
@@ -118,11 +109,6 @@ module Spree
       def current_ability
         Spree::Ability.new(current_api_user)
       end
-
-      def current_currency
-        Spree::Config[:currency]
-      end
-      helper_method :current_currency
 
       def invalid_resource!(resource)
         @resource = resource
