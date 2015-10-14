@@ -735,9 +735,9 @@ describe Spree::Order, :type => :model do
           end
 
           it 'does not attempt to permit existing_card' do
-            expect {
+            expect do
               order.update_from_params(params, permitted_params)
-            }.not_to raise_error
+            end.not_to raise_error
           end
         end
 
@@ -752,12 +752,11 @@ describe Spree::Order, :type => :model do
           end
 
           it 'does not attempt to permit existing_payment_source' do
-            expect {
+            expect do
               order.update_from_params(params, permitted_params)
-            }.not_to raise_error
+            end.not_to raise_error
           end
         end
-
       end
 
       context 'has allowed params' do
