@@ -471,13 +471,13 @@ describe Spree::Order, :type => :model do
       it "makes the current credit card a user's default credit card" do
         order.next!
         expect(order.state).to eq 'complete'
-        expect(order.user.reload.default_credit_card.try(:id)).to eq(order.credit_cards.first.id)
+        expect(order.user.reload.default_payment_source.try(:id)).to eq(order.payment_sources.first.id)
       end
 
       it "does not assign a default credit card if temporary_credit_card is set" do
         order.temporary_credit_card = true
         order.next!
-        expect(order.user.reload.default_credit_card).to be_nil
+        expect(order.user.reload.default_payment_source).to be_nil
       end
     end
   end
@@ -646,11 +646,14 @@ describe Spree::Order, :type => :model do
           [payments_attributes: Spree::PermittedAttributes.payment_attributes]
       end
 
-      let(:credit_card) { create(:credit_card, user_id: order.user_id) }
+      let(:credit_card) { create(:credit_card, user: order.user) }
 
       let(:params) do
         ActionController::Parameters.new(
-          order: { payments_attributes: [{payment_method_id: 1}], existing_card: credit_card.id },
+          order: {
+            payments_attributes: [{ payment_method_id: 1 }],
+            existing_payment_source: credit_card.user_payment_source.id
+          },
           cvc_confirm: "737",
           payment_source: {
             "1" => { name: "Luis Braga",
@@ -662,10 +665,10 @@ describe Spree::Order, :type => :model do
         )
       end
 
-      before { order.user_id = 3 }
+      before { order.user = FactoryGirl.create(:user) }
 
       it "sets confirmation value when its available via :cvc_confirm" do
-        allow(Spree::CreditCard).to receive_messages find: credit_card
+        allow(Spree::UserPaymentSource).to receive_message_chain(:find_by, :payment_source).and_return(credit_card)
         expect(credit_card).to receive(:verification_value=)
         order.update_from_params(params, permitted_params)
       end
@@ -688,7 +691,7 @@ describe Spree::Order, :type => :model do
       end
 
       it "dont let users mess with others users cards" do
-        credit_card.update_column :user_id, 5
+        credit_card.user_payment_source.update_column :user_id, 5
 
         expect {
           order.update_from_params(params, permitted_params)
@@ -705,31 +708,54 @@ describe Spree::Order, :type => :model do
         order.update_from_params(params, permitted_params)
       end
 
-      context 'has existing_card param' do
+      context 'has existing_card or existing_payment_source param' do
         let(:permitted_params) do
           Spree::PermittedAttributes.checkout_attributes +
             [payments_attributes: Spree::PermittedAttributes.payment_attributes]
         end
         let(:credit_card) { create(:credit_card, user_id: order.user_id) }
-        let(:params) do
-          ActionController::Parameters.new(
-            order: { payments_attributes: [{payment_method_id: 1}], existing_card: credit_card.id }
-          )
-        end
 
         before do
           Dummy::Application.config.action_controller.action_on_unpermitted_parameters = :raise
-          order.user_id = 3
+          order.user = FactoryGirl.create(:user)
         end
 
         after do
           Dummy::Application.config.action_controller.action_on_unpermitted_parameters = :log
         end
 
-        it 'does not attempt to permit existing_card' do
-          expect {
-            order.update_from_params(params, permitted_params)
-          }.not_to raise_error
+        context "with an existing_card parameter" do
+          let(:params) do
+            ActionController::Parameters.new(
+              order: {
+                payments_attributes: [{ payment_method_id: 1 }],
+                existing_card: credit_card.id
+              }
+            )
+          end
+
+          it 'does not attempt to permit existing_card' do
+            expect do
+              order.update_from_params(params, permitted_params)
+            end.not_to raise_error
+          end
+        end
+
+        context "with an existing_payment_source parameter" do
+          let(:params) do
+            ActionController::Parameters.new(
+              order: {
+                payments_attributes: [{ payment_method_id: 1 }],
+                existing_payment_source: credit_card.user_payment_source.id
+              }
+            )
+          end
+
+          it 'does not attempt to permit existing_payment_source' do
+            expect do
+              order.update_from_params(params, permitted_params)
+            end.not_to raise_error
+          end
         end
       end
 

@@ -1,12 +1,6 @@
 module Spree
-  class CreditCard < Spree::Base
-    belongs_to :payment_method
-    belongs_to :user, class_name: Spree.user_class, foreign_key: 'user_id'
-    has_many :payments, as: :source
-
+  class CreditCard < Spree::PaymentSource
     before_save :set_last_digits
-
-    after_save :ensure_one_default
 
     # As of rails 4.2 string columns always return strings, we can override it on model level.
     attribute :month, Type::Integer.new
@@ -14,17 +8,13 @@ module Spree
 
     attr_reader :number
     attr_accessor :encrypted_data,
-                    :imported,
-                    :verification_value
+                  :verification_value
 
     with_options if: :require_card_numbers?, on: :create do
       validates :month, :year, numericality: { only_integer: true }
       validates :number, :verification_value, presence: true, unless: :imported
       validates :name, presence: true
     end
-
-    scope :with_payment_profile, -> { where('gateway_customer_profile_id IS NOT NULL') }
-    scope :default, -> { where(default: true) }
 
     # needed for some of the ActiveMerchant gateways (eg. SagePay)
     alias_attribute :brand, :cc_type
@@ -98,39 +88,8 @@ module Spree
       "XXXX-XXXX-XXXX-#{last_digits}"
     end
 
-    def actions
-      %w{capture void credit}
-    end
-
-    # Indicates whether its possible to capture the payment
-    def can_capture?(payment)
-      payment.pending? || payment.checkout?
-    end
-
-    # Indicates whether its possible to void the payment.
-    def can_void?(payment)
-      !payment.failed? && !payment.void?
-    end
-
-    # Indicates whether its possible to credit the payment.  Note that most gateways require that the
-    # payment be settled first which generally happens within 12-24 hours of the transaction.
-    def can_credit?(payment)
-      payment.completed? && payment.credit_allowed > 0
-    end
-
     def has_payment_profile?
       gateway_customer_profile_id.present? || gateway_payment_profile_id.present?
-    end
-
-    # ActiveMerchant needs first_name/last_name because we pass it a Spree::CreditCard and it calls those methods on it.
-    # Looking at the ActiveMerchant source code we should probably be calling #to_active_merchant before passing
-    # the object to ActiveMerchant but this should do for now.
-    def first_name
-      name.to_s.split(/[[:space:]]/, 2)[0]
-    end
-
-    def last_name
-      name.to_s.split(/[[:space:]]/, 2)[1]
     end
 
     def to_active_merchant
@@ -148,14 +107,6 @@ module Spree
 
     def require_card_numbers?
       !self.encrypted_data.present? && !self.has_payment_profile?
-    end
-
-    def ensure_one_default
-      if self.user_id && self.default
-        CreditCard.where(default: true).where.not(id: self.id).where(user_id: self.user_id).each do |ucc|
-          ucc.update_columns(default: false)
-        end
-      end
     end
   end
 end
