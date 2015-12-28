@@ -1,4 +1,7 @@
 require 'spree/testing_support/sequences'
+require 'spree/testing_support/factories/option_value_factory'
+require 'spree/testing_support/factories/option_type_factory'
+require 'spree/testing_support/factories/product_factory'
 
 FactoryGirl.define do
   sequence(:random_float) { BigDecimal.new("#{rand(200)}.#{rand(99)}") }
@@ -36,6 +39,5 @@ FactoryGirl.define do
         is_master 1
       end
     end
-
   end
 end
