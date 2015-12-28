@@ -1,3 +1,6 @@
+require 'spree/testing_support/factories/payment_method_factory'
+require 'spree/testing_support/factories/credit_card_factory'
+
 FactoryGirl.define do
   factory :payment, class: Spree::Payment do
     amount 45.75
