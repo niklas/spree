@@ -32,7 +32,7 @@ if ENV["CHECK_TRANSLATIONS"]
   require "spree/testing_support/i18n"
 end
 
-require 'spree/testing_support/factories'
+require 'spree/testing_support/factories' unless ENV['NO_FACTORIES']
 require 'spree/testing_support/preferences'
 
 RSpec.configure do |config|
