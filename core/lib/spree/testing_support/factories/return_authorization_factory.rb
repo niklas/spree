@@ -1,6 +1,6 @@
 require 'spree/testing_support/factories/order_factory'
 require 'spree/testing_support/factories/stock_location_factory'
-require 'spree/testing_support/factories/return_reason_factory'
+require 'spree/testing_support/factories/return_authorization_reason_factory'
 
 FactoryGirl.define do
   factory :return_authorization, class: Spree::ReturnAuthorization do

@@ -15,10 +15,4 @@ RSpec.describe 'payment factory' do
 
     it_behaves_like 'a working factory'
   end
-
-  describe 'store credit payment' do
-    let(:factory) { :store_credit_payment }
-
-    it_behaves_like 'a working factory'
-  end
 end

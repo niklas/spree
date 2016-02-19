@@ -7,5 +7,5 @@ Spree::Zone.class_eval do
 end
 
 Dir["#{File.dirname(__FILE__)}/factories/**"].each do |f|
-  load File.expand_path(f)
+  require File.expand_path(f)
 end

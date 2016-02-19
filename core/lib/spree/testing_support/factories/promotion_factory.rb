@@ -1,4 +1,3 @@
-require 'spree/testing_support/factories/promotion_code_factory'
 require 'spree/testing_support/factories/variant_factory'
 
 FactoryGirl.define do

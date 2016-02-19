@@ -16,12 +16,6 @@ RSpec.describe 'payment method factory' do
     it_behaves_like 'a working factory'
   end
 
-  describe 'store credit payment method' do
-    let(:factory) { :store_credit_payment_method }
-
-    it_behaves_like 'a working factory'
-  end
-
   describe 'simple credit card payment method' do
     let(:factory) { :simple_credit_card_payment_method }
 

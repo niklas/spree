@@ -33,10 +33,4 @@ RSpec.describe 'calculator factory' do
 
     it_behaves_like 'a working factory'
   end
-
-  describe 'percent on item calculator' do
-    let(:factory) { :percent_on_item_calculator }
-
-    it_behaves_like 'a working factory'
-  end
 end

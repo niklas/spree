@@ -11,6 +11,7 @@ FactoryGirl.define do
     label 'Shipping'
     association(:source, factory: :tax_rate)
     eligible true
+    order { adjustable }
   end
 
   factory :tax_adjustment, class: Spree::Adjustment do
