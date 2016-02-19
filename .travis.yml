@@ -9,7 +9,7 @@ branches:
 before_script:
   - sh -e /etc/init.d/xvfb start
   - export DISPLAY=:99.0
-bundler_args: --without development production --quiet
+bundler_args: --without development production
 env:
   - GEM=api DB=mysql
   - GEM=api DB=postgres
