@@ -6,7 +6,7 @@ rvm:
   - 2.3.0
 branches:
   only:
-  - brandeins-new-taxation
+  - solidus-taxation
 before_script:
   - sh -e /etc/init.d/xvfb start
   - export DISPLAY=:99.0
