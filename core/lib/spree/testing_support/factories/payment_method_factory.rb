@@ -3,7 +3,7 @@ FactoryGirl.define do
     name 'Check'
   end
 
-  factory :credit_card_payment_method, class: Spree::Gateway::Bogus do
+  factory :payment_method, aliases: [:credit_card_payment_method], class: Spree::Gateway::Bogus do
     name 'Credit Card'
   end
 
